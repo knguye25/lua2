@@ -7,8 +7,11 @@ display.setStatusBar(display.HiddenStatusBar)
 local physics = require "physics"
 physics.setDrawMode("hybrid")
 physics.start()
-physics.setGravity( 0, 1)
 display.setDefault("background", 129/500, 0, 0)
+
+-- setup gravity
+local gravityx, gravityy = physics.getGravity()
+physics.setGravity( gravityx, gravityy)
 
 local dusk = require("Dusk.Dusk")
 local map = dusk.buildMap("level.json")
@@ -69,6 +72,24 @@ end
 -- start enemy movement
 moveEnemy()
 
+-- setup button controls
+local function onObjectTouch( self, event )
+    if ( event.phase == "began" ) then
+        print( "Touch event began on: " .. self.id )
+    end
+    return true
+end
+
+local buttons = {map.layer[1].tile(9, 5), map.layer[1].tile(11, 5), map.layer[1].tile(10, 4), map.layer[1].tile(10, 6)}
+buttons[1].id = "leftBtn"
+buttons[2].id = "rightBtn"
+buttons[3].id = "upBtn"
+buttons[4].id = "downBtn"
+
+for buttonIdex=1, 4, 1 do
+  buttons[buttonIdex].touch = onObjectTouch
+  buttons[buttonIdex]:addEventListener( "touch", buttons[buttonIdex] )
+end
 -- setup player
 local player = map.layer[1].tile(2, 2)
 player.id = "player"
