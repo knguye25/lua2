@@ -7,7 +7,7 @@ display.setStatusBar(display.HiddenStatusBar)
 local physics = require "physics"
 physics.setDrawMode("hybrid")
 physics.start()
-physics.setGravity( 0, 0)
+physics.setGravity( 0, 1)
 display.setDefault("background", 129/500, 0, 0)
 
 local dusk = require("Dusk.Dusk")
@@ -28,26 +28,54 @@ end
 
 map:addEventListener("touch", map)
 --]=====]
-local data = map.layer[1].tile(6,6)
-local player = map.layer[1].tile(2, 2)
+-- setup wall tiles
 for tile in map.layer[1].tilesInRange(1, 1, 1, 10) do
   physics.addBody( tile, "static", {density =1.0, friction = 0.3, bounce =0.1})
+  tile.id = "tile"
 end
 
 for tile in map.layer[1].tilesInRange(8, 1, 1, 10) do
   physics.addBody( tile, "static", {density =1.0, friction = 0.3, bounce =0.1})
+  tile.id = "tile"
 end
 
 for tile in map.layer[1].tilesInRange(2, 1, 7, 1) do
   physics.addBody( tile, "static", {density =1.0, friction = 0.3, bounce =0.1})
+  tile.id = "tile"
 end
 
 for tile in map.layer[1].tilesInRange(2, 10, 7, 10) do
   physics.addBody( tile, "static", {density =1.0, friction = 0.3, bounce =0.1})
+  tile.id = "tile"
 end
 
+-- setup enemy
+local enemy = map.layer[1].tile(6,6)
+enemy.isFixedRotation = true
+enemy.id = "enemy"
+enemy.movingRight = false;
+physics.addBody( enemy,"static")
+
+-- setup enemy movement
+function moveEnemy()
+  if(enemy.movingRight) then
+    transition.to( enemy, { time=500, x=50, onComplete=moveEnemy} )
+    enemy.movingRight = false
+  else
+    transition.to( enemy, { time=1000, x=200, onComplete=moveEnemy} )
+    enemy.movingRight = true
+  end
+end
+-- start enemy movement
+moveEnemy()
+
+-- setup player
 local player = map.layer[1].tile(2, 2)
-physics.addBody( player, "dynamic", {density =1.0, friction = 0.3, bounce =0.1})
+player.id = "player"
+physics.addBody( player, "dynamic", {density =1.0, friction = 0.5, bounce =0})
+player.isFixedRotation = true
+
+-- make player dragable
 function player:touch(event)
   if event.phase == "began" then
     self.hasFocus = true
