@@ -1,8 +1,4 @@
------------------------------------------------------------------------------------------
---
--- main.lua
---
------------------------------------------------------------------------------------------
+
 display.setStatusBar(display.HiddenStatusBar)
 local physics = require "physics"
 physics.setDrawMode("hybrid")
@@ -50,6 +46,9 @@ for tile in map.layer[1].tilesInRange(2, 10, 7, 10) do
   tile.id = "tile"
 end
 
+local box = map.layer[1].tile(10,10)
+physics.addBody( box, "static")
+box.id="box"
 -- setup enemy
 local enemy = map.layer[1].tile(6,6)
 enemy.isFixedRotation = true
@@ -60,7 +59,7 @@ physics.addBody( enemy,"static")
 -- setup enemy movement
 function moveEnemy()
   if(enemy.movingRight) then
-    transition.to( enemy, { time=500, x=50, onComplete=moveEnemy} )
+    transition.to( enemy, { time=5000, x=50, onComplete=moveEnemy} )
     enemy.movingRight = false
   else
     transition.to( enemy, { time=1000, x=200, onComplete=moveEnemy} )
@@ -78,7 +77,7 @@ physics.addBody( player, "dynamic", {density =0, friction = 0, bounce =0})
 player.isFixedRotation = true
 
 -- make player dragable
-function player:touch(event)
+function box:touch(event)
   if event.phase == "began" then
     self.hasFocus = true
     self.oldX = self.x
@@ -89,7 +88,7 @@ function player:touch(event)
   end
   return true
 end
-player:addEventListener("touch", player)
+box:addEventListener("touch", box)
 
 
 -- setup button controls
@@ -121,3 +120,23 @@ for buttonIdex=1, 4, 1 do
   buttons[buttonIdex].touch = onObjectTouch
   buttons[buttonIdex]:addEventListener( "touch", buttons[buttonIdex] )
 end
+
+local function onLocalCollision( self, event )
+
+    if ( event.phase == "began" ) then
+        print( self.id .. ": collision began with " .. event.other.id )
+        if(event.other.id == "enemy") then
+          print("you die")
+        elseif(event.other.id == "box") then
+          print "you win"
+        end
+    elseif ( event.phase == "ended" ) then
+        print( self.id .. ": collision ended with " .. event.other.id )
+    end
+end
+
+player.collision = onLocalCollision
+player:addEventListener( "collision", player )
+
+box.collision = onLocalCollision
+box:addEventListener( "collision", box )
